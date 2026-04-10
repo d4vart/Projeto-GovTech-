@@ -1,3 +1,4 @@
+import java.util.Collection;
 import java.util.Scanner;
 
 public class ObservaAcaoApp {
@@ -68,8 +69,52 @@ public class ObservaAcaoApp {
     }
 
     private static void painelGestor() {
-        System.out.println("\n--- LISTAGEM DE DEMANDAS ---");
-        servico.listarTodas().forEach(s ->
-                System.out.println(s.getProtocolo() + " | " + s.getStatusAtual() + " | " + s.getBairro()));
+        System.out.println("\n--- PAINEL DO GESTOR ---");
+        Collection<Solicitacao> todas = servico.listarTodas();
+
+        if (todas.isEmpty()) {
+            System.out.println("Nenhuma demanda no sistema.");
+            return;
+        }
+
+        todas.forEach(s ->
+                System.out.println("Prot: " + s.getProtocolo() + " | Status: " + s.getStatusAtual() + " | Bairro: " + s.getBairro()));
+
+        System.out.print("\nDigite o protocolo da demanda que deseja atualizar (ou '0' para voltar): ");
+        String prot = sc.nextLine();
+
+        if (prot.equals("0")) return;
+
+        Solicitacao solicitacao = servico.buscar(prot);
+        if (solicitacao == null) {
+            System.out.println("Protocolo inválido!");
+            return;
+        }
+
+        System.out.println("Escolha o novo Status:");
+        System.out.println("1-TRIAGEM | 2-EM EXECUÇÃO | 3-RESOLVIDO | 4-ENCERRADO");
+        int opStatus = Integer.parseInt(sc.nextLine());
+
+        Status novoStatus;
+        switch (opStatus) {
+            case 1 -> novoStatus = Status.TRIAGEM;
+            case 2 -> novoStatus = Status.EM_EXECUCAO;
+            case 3 -> novoStatus = Status.RESOLVIDO;
+            case 4 -> novoStatus = Status.ENCERRADO;
+            default -> {
+                System.out.println("Opção inválida.");
+                return;
+            }
+        }
+
+        System.out.print("Digite o comentário/justificativa (OBRIGATÓRIO): ");
+        String comentario = sc.nextLine();
+
+        try {
+            solicitacao.atualizarStatus(novoStatus, "Gestor_Logado_01", comentario);
+            System.out.println("Status atualizado com sucesso!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("ERRO: " + e.getMessage());
+        }
     }
 }
